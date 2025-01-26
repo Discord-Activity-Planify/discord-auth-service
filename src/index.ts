@@ -15,30 +15,36 @@ async function main(): Promise<void> {
     
     app.post("/api/v1/token", async (req: Request, res: Response) => {
 
-        // Exchange the code for an access_token
-        const response = await fetch("https://discord.com/api/oauth2/token", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams({
-            client_id: client_id,
-            client_secret: client_secret,
-            grant_type: "authorization_code",
-            code: req.body.code,
-          }),
-        });
+      try {
+          // Exchange the code for an access_token
+          const response = await fetch("https://discord.com/api/oauth2/token", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+              client_id: client_id,
+              client_secret: client_secret,
+              grant_type: "authorization_code",
+              code: req.body.code,
+            }),
+          });
+        
       
-        // Retrieve the access_token from the response
-        const resp = await response.json();
-        if (resp.error != undefined) {
-          res.status(400).send(resp);
-          return;
+          // Retrieve the access_token from the response
+          const resp = await response.json();
+          if (resp.error != undefined) {
+            res.status(400).send(resp);
+            return;
+          }
+          const { access_token } = resp
+        
+          // Return the access_token to our client as { access_token: "..."}
+          res.send({access_token});
+        } catch (error) {
+          res.status(500).send({error: error || "Unexpected server error"});
+          return
         }
-        const { access_token } = resp
-      
-        // Return the access_token to our client as { access_token: "..."}
-        res.send({access_token});
       });
 
     app.listen(port, () => console.log(`Server is running on http://${host}:${port}`))
